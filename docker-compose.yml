@@ -15,18 +15,20 @@ services:
       - DEBUG=${DEBUG:-True}
       # Redis 配置
       - REDIS_HOST=${REDIS_HOST:-redis}
-      - REDIS_PORT=${REDIS_PORT:-6379}
+      - REDIS_PORT=6379
       - REDIS_DB=${REDIS_DB:-0}
       - REDIS_PASSWORD=${REDIS_PASSWORD:-}
       # MySQL 配置
       - MYSQL_HOST=${MYSQL_HOST:-mysql}
-      - MYSQL_PORT=${MYSQL_PORT:-3306}
+      - MYSQL_PORT=3306
       - MYSQL_USER=${MYSQL_USER:-citibank}
       - MYSQL_PASSWORD=${MYSQL_PASSWORD:-citibank123}
       - MYSQL_DATABASE=${MYSQL_DATABASE:-citibank_db}
     depends_on:
-      - redis
-      - mysql
+      redis:
+        condition: service_healthy
+      mysql:
+        condition: service_healthy
     networks:
       - citibank-network
     volumes:
@@ -75,9 +77,10 @@ services:
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-root123}"]
-      interval: 10s
-      timeout: 3s
-      retries: 5
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
 
 networks:
   citibank-network:
