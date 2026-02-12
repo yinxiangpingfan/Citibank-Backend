@@ -12,7 +12,6 @@
 - ✅ 模块化项目结构
 - ✅ Docker 容器化部署
 - ✅ 数据库支持 (MySQL, Redis)
-- ✅ Kafka 消息队列集成
 
 ## 项目结构
 
@@ -55,8 +54,6 @@ Citibank-Backend/
 
 - **Redis**: 缓存和会话存储
 - **MySQL**: 关系型数据库
-- **Kafka**: 消息队列
-- **Zookeeper**: Kafka 依赖服务
 
 ## 快速开始
 
@@ -78,7 +75,7 @@ docker-compose logs -f app
 #### 1. 启动基础服务
 
 ```bash
-# 启动 Redis, MySQL, PostgreSQL, Kafka
+# 启动 Redis, MySQL 等基础服务
 docker-compose -f docker-compose.dev.yml up -d
 ```
 
@@ -110,7 +107,6 @@ uvicorn app.main:app --host 0.0.0.0 --port 8091 --reload
 
 - **API 文档 (Swagger)**: http://localhost:8091/docs
 - **API 文档 (ReDoc)**: http://localhost:8091/redoc
-- **Kafka UI**: http://localhost:8081 (仅 Docker 模式)
 - **健康检查**: http://localhost:8091/api/v1/health
 - **Ping**: http://localhost:8091/api/v1/ping
 
@@ -206,11 +202,6 @@ Password: citibank123
 ```
 Host: localhost:6379
 Database: 0
-```
-
-### Kafka
-```
-Bootstrap Servers: localhost:9093
 ```
 
 ## 生产环境部署

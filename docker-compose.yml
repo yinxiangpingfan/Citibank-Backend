@@ -24,13 +24,9 @@ services:
       - MYSQL_USER=${MYSQL_USER:-citibank}
       - MYSQL_PASSWORD=${MYSQL_PASSWORD:-citibank123}
       - MYSQL_DATABASE=${MYSQL_DATABASE:-citibank_db}
-      # Kafka 配置
-      - KAFKA_BOOTSTRAP_SERVERS=${KAFKA_BOOTSTRAP_SERVERS:-kafka:9092}
-      - KAFKA_GROUP_ID=${KAFKA_GROUP_ID:-citibank-backend}
     depends_on:
       - redis
       - mysql
-      - kafka
     networks:
       - citibank-network
     volumes:
@@ -83,69 +79,6 @@ services:
       timeout: 3s
       retries: 5
 
-  # Zookeeper 服务 (Kafka 依赖)
-  zookeeper:
-    image: confluentinc/cp-zookeeper:7.5.0
-    container_name: citibank-zookeeper
-    environment:
-      ZOOKEEPER_CLIENT_PORT: ${ZOOKEEPER_CLIENT_PORT:-2181}
-      ZOOKEEPER_TICK_TIME: ${ZOOKEEPER_TICK_TIME:-2000}
-    volumes:
-      - zookeeper-data:/var/lib/zookeeper/data
-      - zookeeper-logs:/var/lib/zookeeper/log
-    networks:
-      - citibank-network
-    restart: unless-stopped
-
-  # Kafka 服务
-  kafka:
-    image: confluentinc/cp-kafka:7.5.0
-    container_name: citibank-kafka
-    ports:
-      - "9092:9092"
-      - "9093:9093"
-    environment:
-      KAFKA_BROKER_ID: ${KAFKA_BROKER_ID:-1}
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:${ZOOKEEPER_CLIENT_PORT:-2181}
-      # 内部通信
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:9093
-      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,PLAINTEXT_HOST://0.0.0.0:9093
-      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
-      # 其他配置
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: ${KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR:-1}
-      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: ${KAFKA_TRANSACTION_STATE_LOG_MIN_ISR:-1}
-      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: ${KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR:-1}
-      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
-    volumes:
-      - kafka-data:/var/lib/kafka/data
-    depends_on:
-      - zookeeper
-    networks:
-      - citibank-network
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "localhost:9092"]
-      interval: 10s
-      timeout: 10s
-      retries: 5
-
-  # Kafka UI (可选,用于管理和监控 Kafka)
-  kafka-ui:
-    image: provectuslabs/kafka-ui:latest
-    container_name: citibank-kafka-ui
-    ports:
-      - "8081:8080"
-    environment:
-      KAFKA_CLUSTERS_0_NAME: local
-      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
-      KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:${ZOOKEEPER_CLIENT_PORT:-2181}
-    depends_on:
-      - kafka
-    networks:
-      - citibank-network
-    restart: unless-stopped
-
 networks:
   citibank-network:
     driver: bridge
@@ -153,6 +86,3 @@ networks:
 volumes:
   redis-data:
   mysql-data:
-  zookeeper-data:
-  zookeeper-logs:
-  kafka-data:
