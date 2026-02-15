@@ -6,24 +6,14 @@ SET NAMES utf8mb4;
 
 SET CHARACTER SET utf8mb4;
 
--- 创建示例表
+-- 创建用户表 (ZKP零知识登录)
 CREATE TABLE IF NOT EXISTS `users` (
     `id` INT AUTO_INCREMENT PRIMARY KEY,
     `username` VARCHAR(50) NOT NULL UNIQUE,
-    `email` VARCHAR(100) NOT NULL UNIQUE,
-    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    INDEX `idx_username` (`username`),
-    INDEX `idx_email` (`email`)
+    `public_key_y` TEXT NOT NULL,
+    `salt` VARCHAR(255) NOT NULL,
+    INDEX `idx_username` (`username`)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
-
--- 插入示例数据
-INSERT INTO
-    `users` (`username`, `email`)
-VALUES ('admin', 'admin@citibank.com'),
-    ('user1', 'user1@citibank.com')
-ON DUPLICATE KEY UPDATE
-    `username` = `username`;
 
 -- 创建系统配置表
 CREATE TABLE IF NOT EXISTS `system_config` (

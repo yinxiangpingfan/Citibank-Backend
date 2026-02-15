@@ -70,14 +70,51 @@ async def startup_event():
             print(f"⏳ 数据库连接失败 (第 {attempt}/{max_retries} 次)，{3}秒后重试...")
             await asyncio.sleep(3)
         
-    print(f"🚀 {settings.APP_NAME} v{settings.APP_VERSION} 启动成功!")
-    print(f"📝 API 文档: http://{settings.HOST}:{settings.PORT}/docs")
     print(f"🔍 ReDoc 文档: http://{settings.HOST}:{settings.PORT}/redoc")
+
+    # 启动定时任务调度器
+    from app.core.scheduler import start_scheduler, scheduler, shutdown_scheduler
+    from app.tasks.driver_sync import sync_market_drivers_task
+    from app.tasks.regime_sync import sync_market_regime_task
+    from app.tasks.event_sync import sync_market_events_task
+
+    # 注册每日 01:00 执行驱动因素分析任务
+    scheduler.add_job(
+        sync_market_drivers_task,
+        "cron",
+        hour=1,
+        minute=0,
+        id="sync_market_drivers",
+        replace_existing=True,
+    )
+
+    # 注册每日 01:10 执行状态机制分析任务
+    scheduler.add_job(
+        sync_market_regime_task,
+        "cron",
+        hour=1,
+        minute=10,
+        id="sync_market_regime",
+        replace_existing=True,
+    )
+
+    # 注册每日 01:20 执行市场事件分析任务
+    scheduler.add_job(
+        sync_market_events_task,
+        "cron",
+        hour=1,
+        minute=20,
+        id="sync_market_events",
+        replace_existing=True,
+    )
+    start_scheduler()
 
 
 @app.on_event("shutdown")
 async def shutdown_event():
     """应用关闭事件"""
+    from app.core.scheduler import shutdown_scheduler
+    shutdown_scheduler()
     print(f"👋 {settings.APP_NAME} 已关闭")
 
 

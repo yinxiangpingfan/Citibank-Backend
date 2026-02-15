@@ -24,6 +24,9 @@ services:
       - MYSQL_USER=${MYSQL_USER:-citibank}
       - MYSQL_PASSWORD=${MYSQL_PASSWORD:-citibank123}
       - MYSQL_DATABASE=${MYSQL_DATABASE:-citibank_db}
+      # LLM 配置
+      - EASYIMPR_API_KEY=${EASYIMPR_API_KEY:-}
+      - BING_YING_SEARCH=${BING_YING_SEARCH:-}
     depends_on:
       redis:
         condition: service_healthy

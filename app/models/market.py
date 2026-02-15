@@ -70,3 +70,63 @@ class MarketDailyPrice(Base):
 
     def __repr__(self):
         return f"<MarketDailyPrice(market={self.market}, date={self.trade_date}, close={self.close_price})>"
+
+
+from sqlalchemy import JSON
+
+class MarketDriverAnalysis(Base):
+    """市场驱动因素分析结果表"""
+    __tablename__ = "market_driver_analysis"
+
+    id = Column(BigInteger, primary_key=True, autoincrement=True, comment="主键ID")
+    market = Column(SQLEnum(MarketType), nullable=False, index=True, comment="市场类型")
+    analysis_date = Column(Date, nullable=False, index=True, comment="分析归属日期")
+    content = Column(JSON, nullable=False, comment="完整分析结果JSON")
+    created_at = Column(TIMESTAMP, server_default=func.now(), comment="生成时间")
+
+    # 复合唯一索引：同一市场同一天只保留一份分析
+    __table_args__ = (
+        Index('idx_driver_market_date', 'market', 'analysis_date', unique=True),
+    )
+
+    def __repr__(self):
+        return f"<MarketDriverAnalysis(market={self.market}, date={self.analysis_date})>"
+
+
+class MarketRegimeAnalysis(Base):
+    """市场状态机制分析结果表"""
+    __tablename__ = "market_regime_analysis"
+
+    id = Column(BigInteger, primary_key=True, autoincrement=True, comment="主键ID")
+    market = Column(SQLEnum(MarketType), nullable=False, index=True, comment="市场类型")
+    analysis_date = Column(Date, nullable=False, index=True, comment="分析归属日期")
+    content = Column(JSON, nullable=False, comment="完整分析结果JSON")
+    created_at = Column(TIMESTAMP, server_default=func.now(), comment="生成时间")
+
+    # 复合唯一索引：同一市场同一天只保留一份分析
+    __table_args__ = (
+        Index('idx_regime_market_date', 'market', 'analysis_date', unique=True),
+    )
+
+    def __repr__(self):
+        return f"<MarketRegimeAnalysis(market={self.market}, date={self.analysis_date})>"
+
+
+class MarketEventAnalysis(Base):
+    """市场事件分析结果表"""
+    __tablename__ = "market_event_analysis"
+
+    id = Column(BigInteger, primary_key=True, autoincrement=True, comment="主键ID")
+    market = Column(SQLEnum(MarketType), nullable=False, index=True, comment="市场类型")
+    analysis_date = Column(Date, nullable=False, index=True, comment="分析归属日期")
+    window_days = Column(BigInteger, nullable=False, default=7, comment="回溯时间窗口（天）")
+    content = Column(JSON, nullable=False, comment="完整事件分析结果JSON")
+    created_at = Column(TIMESTAMP, server_default=func.now(), comment="生成时间")
+
+    # 复合唯一索引：同一市场同一天同一窗口只保留一份分析
+    __table_args__ = (
+        Index('idx_event_market_date_window', 'market', 'analysis_date', 'window_days', unique=True),
+    )
+
+    def __repr__(self):
+        return f"<MarketEventAnalysis(market={self.market}, date={self.analysis_date}, window={self.window_days})>"
